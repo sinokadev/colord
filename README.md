@@ -1,12 +1,4 @@
-# Colord
-
-The color grid uses Lit and is bundled into `static/dist` for FastAPI to serve.
-Build the frontend after installing dependencies:
-
-```sh
-npm ci
-npm run build
-```
+# Colord - Your own list of color
 
 Run the app with Docker Compose by setting `ADMIN_PASSWORD` in `.env`, then:
 

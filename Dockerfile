@@ -1,12 +1,3 @@
-FROM node:24-alpine AS frontend
-
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
-COPY src ./src
-COPY vite.config.js ./
-RUN npm run build
-
 FROM ghcr.io/astral-sh/uv:latest AS uv
 
 FROM python:3.13-slim AS python-deps
@@ -26,7 +17,6 @@ WORKDIR /app
 COPY --from=python-deps /app/.venv ./.venv
 COPY main.py colors.json ./
 COPY templates ./templates
-COPY --from=frontend /app/static/dist ./static/dist
 
 RUN groupadd --system colord \
     && useradd --system --gid colord --home-dir /app colord \
