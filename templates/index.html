@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colord</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            overflow-x: hidden;
+            background-color: #111;
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+            width: 100%;
+        }
+
+        .color-box {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            will-change: transform;
+            transition: transform 0.2s ease 0s, box-shadow 0.2s ease 0s;
+        }
+
+        /* 실제로 떠오른 상태일 때만 클릭 가능 커서로 변경 */
+        .color-box.is-active {
+            cursor: pointer;
+        }
+
+        .color-box:hover {
+            transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(1.5);
+            box-shadow: 0 0 36px rgba(0, 0, 0, 0.55);
+            transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1) 0.45s, box-shadow 0.32s ease 0.45s;
+        }
+
+        /* 네모 박스 정중앙 HEX 코드 */
+        .color-code {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            pointer-events: none;
+            user-select: none;
+            opacity: 0;
+            transition: opacity 0.12s ease 0s;
+        }
+
+        /* 네모 박스 아래쪽에 크게 뜨는 흰색 색 이름 */
+        .color-name {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            color: #FFFFFF;
+            font-size: 12.5px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75);
+            pointer-events: none;
+            user-select: none;
+            opacity: 0;
+            transition: opacity 0.12s ease 0s;
+        }
+
+        .color-name:empty {
+            display: none;
+        }
+
+        /* 왼쪽/오른쪽 끝 칸에서는 이름이 화면 밖으로 잘리지 않게 정렬 */
+        .color-box[data-edge-x="left"] .color-name {
+            left: 0;
+            transform: none;
+        }
+
+        .color-box[data-edge-x="right"] .color-name {
+            left: auto;
+            right: 0;
+            transform: none;
+        }
+
+        .color-box:hover .color-code,
+        .color-box:hover .color-name {
+            opacity: 1;
+            transition: opacity 0.28s ease 0.45s;
+        }
+
+        .backdrop-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 5;
+            pointer-events: none;
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity 0.32s ease;
+        }
+
+        .color-grid.has-active ~ .backdrop-overlay {
+            opacity: 1;
+        }
+
+        /* 하단 크레딧 푸터 */
+        .footer {
+            position: relative;
+            z-index: 1;
+            padding: 28px 16px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            color: rgba(255, 255, 255, 0.42);
+            user-select: none;
+        }
+
+        .footer strong {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .footer a {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 600;
+            text-decoration: none;
+            padding-bottom: 2px;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        .footer a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 85%;
+            height: 1px;
+            background: linear-gradient(90deg, #60a5fa, #c084fc, #f472b6);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .footer a:hover {
+            color: #FFFFFF;
+        }
+
+        .footer a:hover::after {
+            transform: scaleX(1);
+        }
+    </style>
+</head>
+<body>
+    <div class="color-grid" id="grid">
+        {% for item in colors %}
+        <div class="color-box"
+             data-color="{{ item.color }}"
+             data-name="{{ item.name or '' }}"
+             style="background-color: {{ item.color }};">
+            <span class="color-code">{{ item.color }}</span>
+            <span class="color-name">{{ item.name or '' }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="backdrop-overlay"></div>
+
+    <footer class="footer">
+        using <strong>Colord</strong> by <a href="https://sinoka.dev/" target="_blank" rel="noopener noreferrer">SinokaDev🧊</a>
+    </footer>
+
+    <script>
+        function parseHex(hex) {
+            let clean = hex.replace('#', '');
+            if (clean.length === 3) {
+                clean = clean.split('').map(c => c + c).join('');
+            }
+            return {
+                r: parseInt(clean.substring(0, 2), 16),
+                g: parseInt(clean.substring(2, 4), 16),
+                b: parseInt(clean.substring(4, 6), 16)
+            };
+        }
+
+        function hexToHsl(hex) {
+            const rgb = parseHex(hex);
+            const r = rgb.r / 255;
+            const g = rgb.g / 255;
+            const b = rgb.b / 255;
+
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h = 0, s = 0, l = (max + min) / 2;
+
+            if (max !== min) {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+                else if (max === g) h = ((b - r) / d + 2) / 6;
+                else h = ((r - g) / d + 4) / 6;
+            }
+            return { h: h * 360, s: s * 100, l: l * 100 };
+        }
+
+        function getContrastTextColor(hex) {
+            const { r, g, b } = parseHex(hex);
+            const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+            return yiq >= 128 ? '#111111' : '#FFFFFF';
+        }
+
+        const rawColors = Array.from(document.querySelectorAll('.color-box'))
+            .map(el => ({
+                hex: el.dataset.color,
+                name: el.dataset.name || ''
+            }));
+
+        const sortedColors = rawColors
+            .map(item => ({ ...item, ...hexToHsl(item.hex) }))
+            .sort((a, b) => {
+                if (a.s < 10 && b.s >= 10) return 1;
+                if (b.s < 10 && a.s >= 10) return -1;
+                if (Math.abs(a.h - b.h) > 8) return a.h - b.h;
+                return b.l - a.l;
+            });
+
+        function renderDiagonalGradient() {
+            const grid = document.getElementById('grid');
+            const boxes = Array.from(grid.children);
+            const count = boxes.length;
+            if (count === 0) return;
+
+            const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+
+            const cellIndices = Array.from({ length: count }, (_, i) => i).sort((a, b) => {
+                const diagA = Math.floor(a / cols) + (a % cols);
+                const diagB = Math.floor(b / cols) + (b % cols);
+                return diagA - diagB || a - b;
+            });
+
+            cellIndices.forEach((cellIdx, colorIdx) => {
+                const { hex, name } = sortedColors[colorIdx];
+                const box = boxes[cellIdx];
+                const nameEl = box.querySelector('.color-name');
+                const codeEl = box.querySelector('.color-code');
+
+                box.dataset.color = hex;
+                box.dataset.name = name;
+                box.style.backgroundColor = hex;
+
+                if (nameEl) {
+                    nameEl.textContent = name;
+                }
+                if (codeEl) {
+                    codeEl.textContent = hex;
+                    codeEl.style.color = getContrastTextColor(hex);
+                }
+            });
+        }
+
+        function updateEdgeTransform(box) {
+            const rect = box.getBoundingClientRect();
+            const gridRect = grid.getBoundingClientRect();
+            const padX = rect.width * 0.3;
+            const padY = rect.height * 0.3;
+            const shift = 14;
+            const hasName = Boolean(box.dataset.name);
+
+            let originX = 'center';
+            let tx = 0;
+            if (rect.left < padX) {
+                originX = 'left';
+                tx = shift;
+            } else if (window.innerWidth - rect.right < padX) {
+                originX = 'right';
+                tx = -shift;
+            }
+
+            let originY = 'center';
+            let ty = 0;
+            if (rect.top < padY) {
+                originY = 'top';
+                ty = shift;
+            } else if (window.innerHeight - rect.bottom < padY || gridRect.bottom - rect.bottom < padY) {
+                originY = 'bottom';
+                ty = hasName ? -28 : -shift;
+            }
+
+            box.dataset.edgeX = originX;
+            box.style.transformOrigin = `${originX} ${originY}`;
+            box.style.setProperty('--tx', `${tx}px`);
+            box.style.setProperty('--ty', `${ty}px`);
+        }
+
+        async function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                const tempInput = document.createElement('textarea');
+                tempInput.value = text;
+                tempInput.style.position = 'fixed';
+                tempInput.style.opacity = '0';
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+            }
+        }
+
+        let activeBox = null;
+        let hoverTimer = null;
+        let outsideTimer = null;
+        const grid = document.getElementById('grid');
+
+        function activateBox(box) {
+            if (activeBox && activeBox !== box) {
+                activeBox.style.zIndex = 1;
+                activeBox.classList.remove('is-active');
+            }
+            box.style.zIndex = 10;
+            box.classList.add('is-active');
+            activeBox = box;
+            grid.classList.add('has-active');
+        }
+
+        grid.addEventListener('click', async (e) => {
+            const box = e.target.closest('.color-box');
+            // 완전히 올라온 상태(is-active)일 때만 복사 허용
+            if (!box || !box.classList.contains('is-active')) return;
+
+            const color = box.dataset.color;
+            const label = box.querySelector('.color-code');
+
+            await copyToClipboard(color);
+
+            if (label) {
+                clearTimeout(box.copyTimer);
+                label.textContent = 'Copied!';
+                box.copyTimer = setTimeout(() => {
+                    label.textContent = color;
+                }, 900);
+            }
+        });
+
+        grid.addEventListener('mouseover', (e) => {
+            const box = e.target.closest('.color-box');
+            if (!box) return;
+
+            clearTimeout(outsideTimer);
+
+            if (activeBox !== box) {
+                updateEdgeTransform(box);
+            }
+
+            clearTimeout(hoverTimer);
+            hoverTimer = setTimeout(() => activateBox(box), 450);
+        });
+
+        grid.addEventListener('mouseout', (e) => {
+            const box = e.target.closest('.color-box');
+            if (!box || box.contains(e.relatedTarget)) return;
+
+            clearTimeout(hoverTimer);
+            box.classList.remove('is-active');
+            grid.classList.remove('has-active');
+        });
+
+        document.documentElement.addEventListener('mouseleave', () => {
+            clearTimeout(hoverTimer);
+            clearTimeout(outsideTimer);
+            if (activeBox) {
+                activeBox.style.zIndex = 1;
+                activeBox.classList.remove('is-active');
+                activeBox = null;
+            }
+            grid.classList.remove('has-active');
+
+            outsideTimer = setTimeout(() => {
+                grid.classList.add('has-active');
+            }, 1000);
+        });
+
+        document.documentElement.addEventListener('mouseenter', () => {
+            clearTimeout(outsideTimer);
+            grid.classList.remove('has-active');
+        });
+
+        renderDiagonalGradient();
+        window.addEventListener('resize', renderDiagonalGradient);
+    </script>
+</body>
+</html>

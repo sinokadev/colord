@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Color — Colord</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #111;
+            color: #fff;
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 16px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 440px;
+            background: #181818;
+            border-radius: 20px;
+            padding: 28px;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .back-link {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.55);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: #fff;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        label {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            height: 44px;
+            padding: 0 14px;
+            border: none;
+            border-radius: 12px;
+            background: #111;
+            color: #fff;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: background 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            background: #0b0b0b;
+        }
+
+        .color-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-picker {
+            width: 48px;
+            height: 44px;
+            border-radius: 12px;
+            background: #FF0000;
+            flex-shrink: 0;
+        }
+
+        button.primary-btn {
+            width: 100%;
+            height: 46px;
+            border: none;
+            border-radius: 12px;
+            background: #fff;
+            color: #111;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s ease, opacity 0.2s ease;
+        }
+
+        button.primary-btn:hover {
+            opacity: 0.92;
+        }
+
+        button.primary-btn:active {
+            transform: scale(0.985);
+        }
+
+        /* Live tile preview */
+        .preview-stage {
+            margin: 22px 0 24px;
+            padding: 28px 16px 36px;
+            border-radius: 16px;
+            background: #111;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-box {
+            width: 112px;
+            height: 112px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #FF0000;
+            transition: background-color 0.15s ease;
+        }
+
+        .preview-code {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .preview-name {
+            position: absolute;
+            top: calc(100% + 9px);
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-msg {
+            margin-top: 14px;
+            min-height: 20px;
+            font-size: 13px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .status-msg.error {
+            color: #f87171;
+        }
+
+        .status-msg.success {
+            color: #4ade80;
+        }
+
+        /* Saved color list */
+        .list-section {
+            margin-top: 26px;
+        }
+
+        .list-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .list-header span {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .search-input {
+            width: 165px !important;
+            height: 32px !important;
+            font-size: 12.5px !important;
+            border-radius: 8px !important;
+            padding: 0 10px !important;
+        }
+
+        .color-list {
+            max-height: 240px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 4px;
+        }
+
+        .color-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .color-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 99px;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: #111;
+            font-size: 13px;
+        }
+
+        .list-item-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .swatch {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .item-hex {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .item-name {
+            color: rgba(255, 255, 255, 0.5);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .del-btn {
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 6px;
+            transition: color 0.15s ease, background 0.15s ease;
+        }
+
+        .del-btn:hover {
+            color: #f87171;
+            background: rgba(248, 113, 113, 0.12);
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. Password Auth Card -->
+    <div class="card" id="authCard">
+        <div class="header-row">
+            <h1>Colord Admin</h1>
+            <a href="/" class="back-link">← Back to Grid</a>
+        </div>
+        <form id="authForm">
+            <div class="field">
+                <label for="passwordInput">Admin Password</label>
+                <input type="password" id="passwordInput" placeholder="Enter password" required autofocus />
+            </div>
+            <button type="submit" class="primary-btn">Unlock</button>
+            <div class="status-msg" id="authStatus"></div>
+        </form>
+    </div>
+
+    <!-- 2. Add & Manage Color Card -->
+    <div class="card hidden" id="registerCard">
+        <div class="header-row">
+            <h1>Add Color</h1>
+            <a href="/" class="back-link">← Back to Grid</a>
+        </div>
+
+        <form id="colorForm">
+            <div class="field">
+                <label for="hexInput">HEX Color Code</label>
+                <div class="color-input-group">
+                    <div class="color-picker" id="colorPicker"></div>
+                    <input type="text" id="hexInput" value="#FF0000" maxlength="7" placeholder="#RRGGBB" required />
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="nameInput">Color Name (Optional)</label>
+                <input type="text" id="nameInput" placeholder="e.g. Pure Red (optional)" maxlength="40" />
+            </div>
+
+            <!-- Live Hover Preview -->
+            <div class="preview-stage">
+                <div class="preview-box" id="previewBox">
+                    <span class="preview-code" id="previewCode">#FF0000</span>
+                    <span class="preview-name" id="previewName"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="primary-btn">Add Color</button>
+            <div class="status-msg" id="registerStatus"></div>
+        </form>
+
+        <div class="list-section">
+            <div class="list-header">
+                <span id="colorCount">Saved Colors ({{ colors | length }})</span>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search code or name" />
+            </div>
+            <div class="color-list" id="colorList"></div>
+        </div>
+    </div>
+
+    <script>
+        let adminPassword = sessionStorage.getItem('colord_admin_pw') || '';
+        let currentColors = {{ colors | tojson }};
+
+        const authCard = document.getElementById('authCard');
+        const registerCard = document.getElementById('registerCard');
+        const authForm = document.getElementById('authForm');
+        const authStatus = document.getElementById('authStatus');
+
+        const colorPicker = document.getElementById('colorPicker');
+        const hexInput = document.getElementById('hexInput');
+        const nameInput = document.getElementById('nameInput');
+        const previewBox = document.getElementById('previewBox');
+        const previewCode = document.getElementById('previewCode');
+        const previewName = document.getElementById('previewName');
+        const colorForm = document.getElementById('colorForm');
+        const registerStatus = document.getElementById('registerStatus');
+        const colorList = document.getElementById('colorList');
+        const colorCount = document.getElementById('colorCount');
+        const searchInput = document.getElementById('searchInput');
+
+        function getContrastTextColor(hex) {
+            let clean = hex.replace('#', '');
+            if (clean.length === 3) {
+                clean = clean.split('').map(c => c + c).join('');
+            }
+            if (clean.length !== 6) return '#FFFFFF';
+            const r = parseInt(clean.substring(0, 2), 16);
+            const g = parseInt(clean.substring(2, 4), 16);
+            const b = parseInt(clean.substring(4, 6), 16);
+            const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+            return yiq >= 128 ? '#111111' : '#FFFFFF';
+        }
+
+        function updatePreview() {
+            let val = hexInput.value.trim().toUpperCase();
+            if (!val.startsWith('#')) val = '#' + val;
+
+            const isValid = /^#([0-9A-F]{6}|[0-9A-F]{3})$/.test(val);
+            if (isValid) {
+                previewBox.style.backgroundColor = val;
+                previewCode.textContent = val;
+                previewCode.style.color = getContrastTextColor(val);
+
+                colorPicker.style.backgroundColor = val;
+            }
+            previewName.textContent = nameInput.value.trim();
+        }
+
+        function renderColorList() {
+            const query = searchInput.value.trim().toLowerCase();
+            const filtered = currentColors.filter(item => {
+                const matchHex = item.color.toLowerCase().includes(query);
+                const matchName = (item.name || '').toLowerCase().includes(query);
+                return matchHex || matchName;
+            });
+
+            colorCount.textContent = `Saved Colors (${currentColors.length})`;
+            colorList.innerHTML = filtered.slice().reverse().map(item => `
+                <div class="list-item">
+                    <div class="list-item-left">
+                        <span class="swatch" style="background-color: ${item.color};"></span>
+                        <span class="item-hex">${item.color}</span>
+                        ${item.name ? `<span class="item-name">${item.name}</span>` : ''}
+                    </div>
+                    <button type="button" class="del-btn" data-color="${item.color}" aria-label="Delete">×</button>
+                </div>
+            `).join('');
+        }
+
+        async function unlock(password, silent = false) {
+            try {
+                const res = await fetch('/auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                if (!res.ok) {
+                    sessionStorage.removeItem('colord_admin_pw');
+                    if (!silent) {
+                        authStatus.textContent = res.status === 401 ? 'Incorrect password.' : 'Server password is not configured.';
+                        authStatus.className = 'status-msg error';
+                    }
+                    return;
+                }
+
+                adminPassword = password;
+                sessionStorage.setItem('colord_admin_pw', password);
+                authCard.classList.add('hidden');
+                registerCard.classList.remove('hidden');
+                updatePreview();
+                renderColorList();
+            } catch (err) {
+                if (!silent) {
+                    authStatus.textContent = 'Unable to connect to the server.';
+                    authStatus.className = 'status-msg error';
+                }
+            }
+        }
+
+        if (adminPassword) {
+            unlock(adminPassword, true);
+        }
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const pw = document.getElementById('passwordInput').value;
+            await unlock(pw, false);
+        });
+
+        hexInput.addEventListener('input', () => {
+            let val = hexInput.value.toUpperCase();
+            if (val && !val.startsWith('#')) {
+                val = '#' + val;
+            }
+            hexInput.value = val;
+            updatePreview();
+        });
+
+        nameInput.addEventListener('input', updatePreview);
+        searchInput.addEventListener('input', renderColorList);
+
+        colorForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            registerStatus.textContent = '';
+
+            const color = hexInput.value.trim().toUpperCase();
+            const name = nameInput.value.trim();
+
+            try {
+                const res = await fetch('/colors', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Password': adminPassword
+                    },
+                    body: JSON.stringify({ color, name: name || null })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    registerStatus.textContent = res.status === 401 ? 'Unauthorized.' : 'Invalid HEX code or color already exists.';
+                    registerStatus.className = 'status-msg error';
+                    return;
+                }
+
+                currentColors = data.colors;
+                renderColorList();
+                nameInput.value = '';
+                updatePreview();
+                registerStatus.textContent = `${color} added!`;
+                registerStatus.className = 'status-msg success';
+            } catch (err) {
+                registerStatus.textContent = 'Failed to submit color.';
+                registerStatus.className = 'status-msg error';
+            }
+        });
+
+        colorList.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.del-btn');
+            if (!btn) return;
+
+            const targetColor = btn.dataset.color;
+            const encoded = encodeURIComponent(targetColor);
+
+            try {
+                const res = await fetch(`/colors/${encoded}`, {
+                    method: 'DELETE',
+                    headers: { 'X-Admin-Password': adminPassword }
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    registerStatus.textContent = 'Failed to delete color.';
+                    registerStatus.className = 'status-msg error';
+                    return;
+                }
+
+                currentColors = data.colors;
+                renderColorList();
+                registerStatus.textContent = `${targetColor} deleted.`;
+                registerStatus.className = 'status-msg';
+            } catch (err) {
+                registerStatus.textContent = 'Failed to delete color.';
+                registerStatus.className = 'status-msg error';
+            }
+        });
+    </script>
+</body>
+</html>
