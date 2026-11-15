@@ -9,12 +9,14 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 load_dotenv()
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 origins = [
     "http://localhost",
@@ -29,7 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DATA_FILE = Path("colors.json")
+DATA_FILE = Path(os.getenv("COLORS_FILE", "colors.json"))
 templates = Jinja2Templates(directory="templates")
 HEX_PATTERN = re.compile(r"^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")

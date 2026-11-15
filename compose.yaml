@@ -1,0 +1,14 @@
+services:
+  colord:
+    build: .
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+      COLORS_FILE: /data/colors.json
+    volumes:
+      - colord-data:/data
+    restart: unless-stopped
+
+volumes:
+  colord-data:
