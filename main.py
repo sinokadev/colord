@@ -40,6 +40,11 @@ class ColorItem(BaseModel):
     name: str | None = None
 
 
+class ColorUpdateItem(BaseModel):
+    color: str | None = None
+    name: str | None = None
+
+
 class AuthRequest(BaseModel):
     password: str
 
@@ -55,8 +60,12 @@ def load_colors() -> list[dict[str, str | None]]:
     if not DATA_FILE.exists():
         save_colors([])
         return []
-    with open(DATA_FILE, "r", encoding="utf-8") as f:
-        raw: list[Any] = json.load(f)
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            raw: list[Any] = json.load(f)
+    except (json.JSONDecodeError, ValueError):
+        save_colors([])
+        return []
 
     normalized: list[dict[str, str | None]] = []
     for entry in raw:
@@ -144,3 +153,50 @@ async def delete_color(color: str):
 
     save_colors(updated)
     return {"message": "Color deleted", "colors": updated}
+
+
+# 4. Update a HEX color or its name (requires admin password)
+@app.put("/colors/{color}", dependencies=[Depends(verify_admin)])
+async def update_color(color: str, item: ColorUpdateItem):
+    colors = load_colors()
+    target = color.strip().upper()
+    if not target.startswith("#"):
+        target = f"#{target}"
+
+    found_idx = -1
+    for idx, c in enumerate(colors):
+        if c["color"] == target:
+            found_idx = idx
+            break
+
+    if found_idx == -1:
+        raise HTTPException(status_code=404, detail="Color not found.")
+
+    target_item = colors[found_idx]
+
+    # Resolve new color
+    if item.color is not None and item.color.strip():
+        new_color = item.color.strip().upper()
+        if not new_color.startswith("#"):
+            new_color = f"#{new_color}"
+    else:
+        new_color = target_item["color"]
+
+    if not HEX_PATTERN.match(new_color):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid HEX color code. Use #RGB or #RRGGBB."
+        )
+
+    if new_color != target and any(c["color"] == new_color for c in colors):
+        raise HTTPException(status_code=400, detail="Color already exists.")
+
+    # Resolve new name: keep existing if omitted (None), clear if empty string ("")
+    if item.name is not None:
+        new_name = item.name.strip() if item.name.strip() else None
+    else:
+        new_name = target_item.get("name")
+
+    colors[found_idx] = {"color": new_color, "name": new_name}
+    save_colors(colors)
+    return {"message": "Color updated", "colors": colors}

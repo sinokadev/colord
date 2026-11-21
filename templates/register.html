@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register Color — Colord</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <!-- Pickr Color Picker CSS (Monolith theme) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/monolith.min.css" />
     <style>
         * {
             box-sizing: border-box;
@@ -60,6 +62,39 @@
             color: #fff;
         }
 
+        .edit-badge {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: rgba(96, 165, 250, 0.12);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 12px;
+            margin-bottom: 18px;
+            font-size: 13px;
+            color: #93c5fd;
+        }
+
+        .edit-badge strong {
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .cancel-edit-icon {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+            transition: color 0.15s ease;
+        }
+
+        .cancel-edit-icon:hover {
+            color: #fff;
+        }
+
         .field {
             display: flex;
             flex-direction: column;
@@ -105,6 +140,51 @@
             border-radius: 12px;
             background: #FF0000;
             flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Pickr Button Custom Styles */
+        .pickr {
+            flex-shrink: 0;
+        }
+
+        .pickr .pcr-button {
+            width: 48px !important;
+            height: 44px !important;
+            border-radius: 12px !important;
+            border: none !important;
+            box-shadow: none !important;
+            transition: transform 0.15s ease, opacity 0.2s ease;
+        }
+
+        .pickr .pcr-button:hover {
+            transform: scale(1.05);
+        }
+
+        .pickr .pcr-button::before,
+        .pickr .pcr-button::after {
+            border-radius: 12px !important;
+        }
+
+        .pcr-app {
+            background: #181818 !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7) !important;
+            border-radius: 16px !important;
+            color: #fff !important;
+        }
+
+        .pcr-app .pcr-interaction input {
+            background: #111 !important;
+            border-radius: 8px !important;
+            color: #fff !important;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
         }
 
         button.primary-btn {
@@ -127,6 +207,24 @@
 
         button.primary-btn:active {
             transform: scale(0.985);
+        }
+
+        button.secondary-btn {
+            width: 100%;
+            height: 46px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 12px;
+            background: #242424;
+            color: #fff;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease, opacity 0.2s ease;
+        }
+
+        button.secondary-btn:hover {
+            background: #303030;
         }
 
         /* Live tile preview */
@@ -244,6 +342,8 @@
             align-items: center;
             gap: 10px;
             min-width: 0;
+            flex: 1;
+            margin-right: 8px;
         }
 
         .swatch {
@@ -265,20 +365,93 @@
             white-space: nowrap;
         }
 
-        .del-btn {
+        .list-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
             border: none;
             background: transparent;
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 16px;
+            color: rgba(255, 255, 255, 0.45);
             cursor: pointer;
-            padding: 2px 6px;
+            padding: 5px;
             border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             transition: color 0.15s ease, background 0.15s ease;
+        }
+
+        .action-btn svg {
+            display: block;
+        }
+
+        .edit-btn:hover {
+            color: #60a5fa;
+            background: rgba(96, 165, 250, 0.15);
+        }
+
+        .del-btn {
+            font-size: 16px;
+            line-height: 1;
+            padding: 3px 6px;
         }
 
         .del-btn:hover {
             color: #f87171;
             background: rgba(248, 113, 113, 0.12);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            color: rgba(255, 255, 255, 0.42);
+            user-select: none;
+        }
+
+        .footer strong {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .footer a {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 600;
+            text-decoration: none;
+            padding-bottom: 2px;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        .footer a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 85%;
+            height: 1px;
+            background: linear-gradient(90deg, #60a5fa, #c084fc, #f472b6);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .footer a:hover {
+            color: #FFFFFF;
+        }
+
+        .footer a:hover::after {
+            transform: scaleX(1);
         }
     </style>
 </head>
@@ -302,8 +475,13 @@
     <!-- 2. Add & Manage Color Card -->
     <div class="card hidden" id="registerCard">
         <div class="header-row">
-            <h1>Add Color</h1>
+            <h1 id="formTitle">Add Color</h1>
             <a href="/" class="back-link">← Back to Grid</a>
+        </div>
+
+        <div class="edit-badge hidden" id="editBadge">
+            <span>Editing <strong id="editingColorText">#FF0000</strong></span>
+            <button type="button" class="cancel-edit-icon" id="cancelEditBadgeBtn" title="Cancel editing">✕</button>
         </div>
 
         <form id="colorForm">
@@ -328,7 +506,10 @@
                 </div>
             </div>
 
-            <button type="submit" class="primary-btn">Add Color</button>
+            <div class="btn-group" id="btnGroup">
+                <button type="submit" class="primary-btn" id="submitBtn">Add Color</button>
+                <button type="button" class="secondary-btn hidden" id="cancelEditBtn">Cancel</button>
+            </div>
             <div class="status-msg" id="registerStatus"></div>
         </form>
 
@@ -341,16 +522,29 @@
         </div>
     </div>
 
+    <footer class="footer">
+        using <a href="https://github.com/sinokadev/colord" target="_blank" rel="noopener noreferrer"><strong>Colord</strong></a> by <a href="https://sinoka.dev/" target="_blank" rel="noopener noreferrer">SinokaDev🧊</a>
+    </footer>
+
+    <!-- Pickr Color Picker JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
     <script>
         let adminPassword = sessionStorage.getItem('colord_admin_pw') || '';
         let currentColors = {{ colors | tojson }};
+        let editingTargetColor = null;
 
         const authCard = document.getElementById('authCard');
         const registerCard = document.getElementById('registerCard');
         const authForm = document.getElementById('authForm');
         const authStatus = document.getElementById('authStatus');
 
-        const colorPicker = document.getElementById('colorPicker');
+        const formTitle = document.getElementById('formTitle');
+        const editBadge = document.getElementById('editBadge');
+        const editingColorText = document.getElementById('editingColorText');
+        const cancelEditBadgeBtn = document.getElementById('cancelEditBadgeBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+
         const hexInput = document.getElementById('hexInput');
         const nameInput = document.getElementById('nameInput');
         const previewBox = document.getElementById('previewBox');
@@ -361,6 +555,16 @@
         const colorList = document.getElementById('colorList');
         const colorCount = document.getElementById('colorCount');
         const searchInput = document.getElementById('searchInput');
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
 
         function getContrastTextColor(hex) {
             let clean = hex.replace('#', '');
@@ -375,7 +579,40 @@
             return yiq >= 128 ? '#111111' : '#FFFFFF';
         }
 
-        function updatePreview() {
+        // Initialize embedded Pickr color picker component
+        let pickr = null;
+        if (typeof Pickr !== 'undefined') {
+            pickr = Pickr.create({
+                el: '#colorPicker',
+                theme: 'monolith',
+                default: '#FF0000',
+                closeWithKey: 'Escape',
+                swatches: [
+                    '#EF4444', '#F97316', '#F59E0B', '#10B981', '#06B6D4',
+                    '#3B82F6', '#6366F1', '#8B5CF6', '#EC4899', '#FFFFFF',
+                    '#94A3B8', '#000000'
+                ],
+                components: {
+                    preview: true,
+                    opacity: false,
+                    hue: true,
+                    interaction: {
+                        hex: true,
+                        input: true,
+                        clear: false,
+                        save: false
+                    }
+                }
+            });
+
+            pickr.on('change', (color) => {
+                const hex = color.toHEXA().toString(0).toUpperCase();
+                hexInput.value = hex;
+                updatePreview(false);
+            });
+        }
+
+        function updatePreview(syncPickr = true) {
             let val = hexInput.value.trim().toUpperCase();
             if (!val.startsWith('#')) val = '#' + val;
 
@@ -385,10 +622,47 @@
                 previewCode.textContent = val;
                 previewCode.style.color = getContrastTextColor(val);
 
-                colorPicker.style.backgroundColor = val;
+                if (syncPickr && pickr) {
+                    pickr.setColor(val, true);
+                } else if (!pickr) {
+                    const pickerEl = document.getElementById('colorPicker');
+                    if (pickerEl) pickerEl.style.backgroundColor = val;
+                }
             }
             previewName.textContent = nameInput.value.trim();
         }
+
+        function enterEditMode(color, name) {
+            editingTargetColor = color;
+            formTitle.textContent = 'Edit Color';
+            editBadge.classList.remove('hidden');
+            editingColorText.textContent = color;
+            submitBtn.textContent = 'Update Color';
+            cancelEditBtn.classList.remove('hidden');
+
+            hexInput.value = color;
+            nameInput.value = name || '';
+            updatePreview(true);
+            registerStatus.textContent = '';
+
+            registerCard.scrollIntoView({ behavior: 'smooth' });
+            nameInput.focus();
+        }
+
+        function resetEditMode() {
+            editingTargetColor = null;
+            formTitle.textContent = 'Add Color';
+            editBadge.classList.add('hidden');
+            submitBtn.textContent = 'Add Color';
+            cancelEditBtn.classList.add('hidden');
+
+            hexInput.value = '#FF0000';
+            nameInput.value = '';
+            updatePreview(true);
+        }
+
+        cancelEditBtn.addEventListener('click', resetEditMode);
+        cancelEditBadgeBtn.addEventListener('click', resetEditMode);
 
         function renderColorList() {
             const query = searchInput.value.trim().toLowerCase();
@@ -404,9 +678,17 @@
                     <div class="list-item-left">
                         <span class="swatch" style="background-color: ${item.color};"></span>
                         <span class="item-hex">${item.color}</span>
-                        ${item.name ? `<span class="item-name">${item.name}</span>` : ''}
+                        ${item.name ? `<span class="item-name">${escapeHtml(item.name)}</span>` : ''}
                     </div>
-                    <button type="button" class="del-btn" data-color="${item.color}" aria-label="Delete">×</button>
+                    <div class="list-item-actions">
+                        <button type="button" class="action-btn edit-btn" data-color="${item.color}" data-name="${escapeHtml(item.name || '')}" aria-label="Edit color" title="Edit">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                        <button type="button" class="action-btn del-btn" data-color="${item.color}" aria-label="Delete color" title="Delete">×</button>
+                    </div>
                 </div>
             `).join('');
         }
@@ -432,7 +714,7 @@
                 sessionStorage.setItem('colord_admin_pw', password);
                 authCard.classList.add('hidden');
                 registerCard.classList.remove('hidden');
-                updatePreview();
+                updatePreview(true);
                 renderColorList();
             } catch (err) {
                 if (!silent) {
@@ -458,10 +740,10 @@
                 val = '#' + val;
             }
             hexInput.value = val;
-            updatePreview();
+            updatePreview(true);
         });
 
-        nameInput.addEventListener('input', updatePreview);
+        nameInput.addEventListener('input', () => updatePreview(false));
         searchInput.addEventListener('input', renderColorList);
 
         colorForm.addEventListener('submit', async (e) => {
@@ -471,62 +753,105 @@
             const color = hexInput.value.trim().toUpperCase();
             const name = nameInput.value.trim();
 
+            if (!/^#([0-9A-F]{6}|[0-9A-F]{3})$/.test(color)) {
+                registerStatus.textContent = 'Invalid HEX color code. Use #RGB or #RRGGBB.';
+                registerStatus.className = 'status-msg error';
+                return;
+            }
+
             try {
-                const res = await fetch('/colors', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Password': adminPassword
-                    },
-                    body: JSON.stringify({ color, name: name || null })
-                });
-                const data = await res.json();
+                if (editingTargetColor) {
+                    // Update existing color
+                    const res = await fetch(`/colors/${encodeURIComponent(editingTargetColor)}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Admin-Password': adminPassword
+                        },
+                        body: JSON.stringify({ color, name: name ? name : "" })
+                    });
+                    const data = await res.json();
 
-                if (!res.ok) {
-                    registerStatus.textContent = res.status === 401 ? 'Unauthorized.' : 'Invalid HEX code or color already exists.';
-                    registerStatus.className = 'status-msg error';
-                    return;
+                    if (!res.ok) {
+                        registerStatus.textContent = data.detail || (res.status === 401 ? 'Unauthorized.' : 'Failed to update color.');
+                        registerStatus.className = 'status-msg error';
+                        return;
+                    }
+
+                    currentColors = data.colors;
+                    renderColorList();
+                    registerStatus.textContent = `${color} updated!`;
+                    registerStatus.className = 'status-msg success';
+                    resetEditMode();
+                } else {
+                    // Add new color
+                    const res = await fetch('/colors', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Admin-Password': adminPassword
+                        },
+                        body: JSON.stringify({ color, name: name || null })
+                    });
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        registerStatus.textContent = data.detail || (res.status === 401 ? 'Unauthorized.' : 'Invalid HEX code or color already exists.');
+                        registerStatus.className = 'status-msg error';
+                        return;
+                    }
+
+                    currentColors = data.colors;
+                    renderColorList();
+                    nameInput.value = '';
+                    updatePreview(true);
+                    registerStatus.textContent = `${color} added!`;
+                    registerStatus.className = 'status-msg success';
                 }
-
-                currentColors = data.colors;
-                renderColorList();
-                nameInput.value = '';
-                updatePreview();
-                registerStatus.textContent = `${color} added!`;
-                registerStatus.className = 'status-msg success';
             } catch (err) {
-                registerStatus.textContent = 'Failed to submit color.';
+                registerStatus.textContent = 'Server communication error.';
                 registerStatus.className = 'status-msg error';
             }
         });
 
         colorList.addEventListener('click', async (e) => {
-            const btn = e.target.closest('.del-btn');
-            if (!btn) return;
+            const editBtn = e.target.closest('.edit-btn');
+            if (editBtn) {
+                const color = editBtn.dataset.color;
+                const name = editBtn.dataset.name;
+                enterEditMode(color, name);
+                return;
+            }
 
-            const targetColor = btn.dataset.color;
-            const encoded = encodeURIComponent(targetColor);
+            const delBtn = e.target.closest('.del-btn');
+            if (delBtn) {
+                const targetColor = delBtn.dataset.color;
+                const encoded = encodeURIComponent(targetColor);
 
-            try {
-                const res = await fetch(`/colors/${encoded}`, {
-                    method: 'DELETE',
-                    headers: { 'X-Admin-Password': adminPassword }
-                });
-                const data = await res.json();
+                try {
+                    const res = await fetch(`/colors/${encoded}`, {
+                        method: 'DELETE',
+                        headers: { 'X-Admin-Password': adminPassword }
+                    });
+                    const data = await res.json();
 
-                if (!res.ok) {
+                    if (!res.ok) {
+                        registerStatus.textContent = 'Failed to delete color.';
+                        registerStatus.className = 'status-msg error';
+                        return;
+                    }
+
+                    currentColors = data.colors;
+                    renderColorList();
+                    if (editingTargetColor === targetColor) {
+                        resetEditMode();
+                    }
+                    registerStatus.textContent = `${targetColor} deleted.`;
+                    registerStatus.className = 'status-msg';
+                } catch (err) {
                     registerStatus.textContent = 'Failed to delete color.';
                     registerStatus.className = 'status-msg error';
-                    return;
                 }
-
-                currentColors = data.colors;
-                renderColorList();
-                registerStatus.textContent = `${targetColor} deleted.`;
-                registerStatus.className = 'status-msg';
-            } catch (err) {
-                registerStatus.textContent = 'Failed to delete color.';
-                registerStatus.className = 'status-msg error';
             }
         });
     </script>

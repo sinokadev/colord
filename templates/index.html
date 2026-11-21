@@ -180,10 +180,17 @@
     <div class="backdrop-overlay"></div>
 
     <footer class="footer">
-        using <strong>Colord</strong> by <a href="https://sinoka.dev/" target="_blank" rel="noopener noreferrer">SinokaDev🧊</a>
+        using <a href="https://github.com/sinokadev/colord" target="_blank" rel="noopener noreferrer"><strong>Colord</strong></a> by <a href="https://sinoka.dev/" target="_blank" rel="noopener noreferrer">SinokaDev🧊</a>
     </footer>
 
     <script>
+        // ========================================================
+        // [설정] 포커스/화면에서 벗어났을 때 흐려지는 효과(블러) 활성화 여부
+        // false: 비활성화 (포커스/화면을 벗어나도 흐려지지 않음)
+        // true: 활성화 (화면/포커스를 벗어나면 흐려짐)
+        // ========================================================
+        const BLUR_ON_UNFOCUS = false;
+
         function parseHex(hex) {
             let clean = hex.replace('#', '');
             if (clean.length === 3) {
@@ -378,7 +385,7 @@
             grid.classList.remove('has-active');
         });
 
-        document.documentElement.addEventListener('mouseleave', () => {
+        function handleFocusLeave() {
             clearTimeout(hoverTimer);
             clearTimeout(outsideTimer);
             if (activeBox) {
@@ -387,15 +394,22 @@
             }
             grid.classList.remove('has-active');
 
-            outsideTimer = setTimeout(() => {
-                grid.classList.add('has-active');
-            }, 1000);
-        });
+            if (BLUR_ON_UNFOCUS) {
+                outsideTimer = setTimeout(() => {
+                    grid.classList.add('has-active');
+                }, 1000);
+            }
+        }
 
-        document.documentElement.addEventListener('mouseenter', () => {
+        function handleFocusEnter() {
             clearTimeout(outsideTimer);
             grid.classList.remove('has-active');
-        });
+        }
+
+        document.documentElement.addEventListener('mouseleave', handleFocusLeave);
+        document.documentElement.addEventListener('mouseenter', handleFocusEnter);
+        window.addEventListener('blur', handleFocusLeave);
+        window.addEventListener('focus', handleFocusEnter);
 
         renderDiagonalGradient();
         window.addEventListener('resize', renderDiagonalGradient);
