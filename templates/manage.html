@@ -1088,6 +1088,7 @@
                         if (!aAchromatic && bAchromatic) return -1;
                         if (aAchromatic && bAchromatic) return b.l - a.l;
                         if (Math.abs(a.h - b.h) > 0.001) return a.h - b.h;
+                        if (Math.abs(b.s - a.s) > 15) return b.s - a.s;
                         return b.l - a.l;
                     });
                 } else if (currentSort === 'lightness-desc') {

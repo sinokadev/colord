@@ -255,6 +255,9 @@
                 if (Math.abs(a.h - b.h) > 0.001) {
                     return a.h - b.h;
                 }
+                if (Math.abs(b.s - a.s) > 15) {
+                    return b.s - a.s;
+                }
                 if (Math.abs(b.l - a.l) > 0.001) {
                     return b.l - a.l;
                 }
@@ -278,8 +281,12 @@
                 const colColors = sortedColors.slice(offset, offset + colCount);
                 offset += colCount;
 
-                // 세로 방향: 위에서 아래로 갈수록 점점 어두워지도록 정렬
-                colColors.sort((a, b) => (b.l - a.l) || (a.h - b.h));
+                // 세로 방향: 명도 순을 유지하면서, 비슷한 명도에서는 채도가 높은 색끼리 모이도록 정렬
+                colColors.sort((a, b) => {
+                    if (Math.abs(b.l - a.l) > 0.001) return b.l - a.l;
+                    if (Math.abs(b.s - a.s) > 15) return b.s - a.s;
+                    return (a.h - b.h);
+                });
 
                 for (let r = 0; r < colCount; r++) {
                     const cellIdx = r * cols + c;
