@@ -14,6 +14,10 @@
             padding: 0;
         }
 
+        html *, html *::before, html *::after {
+            border: none !important;
+        }
+
         body {
             min-height: 100vh;
             background-color: #111;
@@ -405,6 +409,70 @@
             background: rgba(248, 113, 113, 0.12);
         }
 
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: #111;
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+
+        .filter-chip:hover {
+            background: #1c1c1c;
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .filter-chip.active {
+            background: rgba(96, 165, 250, 0.15);
+            color: #93c5fd;
+            border-color: rgba(96, 165, 250, 0.4);
+            font-weight: 600;
+        }
+
+        .filter-chip .chip-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: background 0.2s ease;
+        }
+
+        .filter-chip.active .chip-dot {
+            background: #60a5fa;
+            box-shadow: 0 0 6px rgba(96, 165, 250, 0.6);
+        }
+
+        .full-manager-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12.5px;
+            color: #60a5fa;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .full-manager-link:hover {
+            color: #93c5fd;
+            text-decoration: underline;
+        }
+
         /* Footer */
         .footer {
             margin-top: 32px;
@@ -476,7 +544,10 @@
     <div class="card hidden" id="registerCard">
         <div class="header-row">
             <h1 id="formTitle">Add Color</h1>
-            <a href="/" class="back-link">← Back to Grid</a>
+            <div style="display: flex; gap: 14px; align-items: center;">
+                <a href="/manage" class="full-manager-link" title="Open the color manager">Color Manager ↗</a>
+                <a href="/" class="back-link">← Grid</a>
+            </div>
         </div>
 
         <div class="edit-badge hidden" id="editBadge">
@@ -517,6 +588,16 @@
             <div class="list-header">
                 <span id="colorCount">Saved Colors ({{ colors | length }})</span>
                 <input type="text" class="search-input" id="searchInput" placeholder="Search code or name" />
+            </div>
+            <div class="filter-controls">
+                <button type="button" class="filter-chip" id="toggleSimilarBtn" title="Filter for colors similar to the selected color">
+                    <span class="chip-dot"></span>
+                    <span>Similar colors</span>
+                </button>
+                <button type="button" class="filter-chip" id="toggleUnnamedBtn" title="Filter for unnamed colors">
+                    <span class="chip-dot"></span>
+                    <span>Unnamed colors</span>
+                </button>
             </div>
             <div class="color-list" id="colorList"></div>
         </div>
@@ -630,6 +711,10 @@
                 }
             }
             previewName.textContent = nameInput.value.trim();
+
+            if (filterSimilar) {
+                renderColorList();
+            }
         }
 
         function enterEditMode(color, name) {
@@ -664,21 +749,104 @@
         cancelEditBtn.addEventListener('click', resetEditMode);
         cancelEditBadgeBtn.addEventListener('click', resetEditMode);
 
+        function parseRgbFromHex(hex) {
+            let clean = (hex || '').replace('#', '').trim();
+            if (clean.length === 3) {
+                clean = clean.split('').map(c => c + c).join('');
+            }
+            if (clean.length !== 6) return null;
+            return {
+                r: parseInt(clean.substring(0, 2), 16),
+                g: parseInt(clean.substring(2, 4), 16),
+                b: parseInt(clean.substring(4, 6), 16)
+            };
+        }
+
+        function colorDistance(hex1, hex2) {
+            const c1 = parseRgbFromHex(hex1);
+            const c2 = parseRgbFromHex(hex2);
+            if (!c1 || !c2) return Infinity;
+            const rmean = (c1.r + c2.r) / 2;
+            const dr = c1.r - c2.r;
+            const dg = c1.g - c2.g;
+            const db = c1.b - c2.b;
+            return Math.sqrt(
+                (2 + rmean / 256) * dr * dr +
+                4 * dg * dg +
+                (2 + (255 - rmean) / 256) * db * db
+            );
+        }
+
+        let filterSimilar = false;
+        let filterUnnamed = false;
+
+        const toggleSimilarBtn = document.getElementById('toggleSimilarBtn');
+        const toggleUnnamedBtn = document.getElementById('toggleUnnamedBtn');
+
+        toggleSimilarBtn.addEventListener('click', () => {
+            filterSimilar = !filterSimilar;
+            toggleSimilarBtn.classList.toggle('active', filterSimilar);
+            renderColorList();
+        });
+
+        toggleUnnamedBtn.addEventListener('click', () => {
+            filterUnnamed = !filterUnnamed;
+            toggleUnnamedBtn.classList.toggle('active', filterUnnamed);
+            renderColorList();
+        });
+
         function renderColorList() {
             const query = searchInput.value.trim().toLowerCase();
-            const filtered = currentColors.filter(item => {
-                const matchHex = item.color.toLowerCase().includes(query);
-                const matchName = (item.name || '').toLowerCase().includes(query);
-                return matchHex || matchName;
-            });
+            let currentHex = hexInput.value.trim().toUpperCase();
+            if (currentHex && !currentHex.startsWith('#')) currentHex = '#' + currentHex;
 
-            colorCount.textContent = `Saved Colors (${currentColors.length})`;
-            colorList.innerHTML = filtered.slice().reverse().map(item => `
+            const SIMILAR_THRESHOLD = 135;
+            let list = currentColors.slice();
+
+            // 1. Unnamed color filter
+            if (filterUnnamed) {
+                list = list.filter(item => !item.name || !item.name.trim());
+            }
+
+            // 2. Similar color filter
+            if (filterSimilar && parseRgbFromHex(currentHex)) {
+                list = list
+                    .map(item => ({
+                        ...item,
+                        dist: colorDistance(currentHex, item.color)
+                    }))
+                    .filter(item => item.dist <= SIMILAR_THRESHOLD)
+                    .sort((a, b) => a.dist - b.dist);
+            }
+
+            // 3. Search filter
+            if (query) {
+                list = list.filter(item => {
+                    const matchHex = item.color.toLowerCase().includes(query);
+                    const matchName = (item.name || '').toLowerCase().includes(query);
+                    return matchHex || matchName;
+                });
+            }
+
+            const isFiltered = filterSimilar || filterUnnamed || Boolean(query);
+            colorCount.textContent = isFiltered
+                ? `Saved Colors (${list.length} / ${currentColors.length})`
+                : `Saved Colors (${currentColors.length})`;
+
+            if (list.length === 0) {
+                colorList.innerHTML = `<div style="text-align:center; padding: 24px 0; color: rgba(255,255,255,0.4); font-size: 13px;">No matching colors found.</div>`;
+                return;
+            }
+
+            // Similar colors are sorted by distance; otherwise, show newest first.
+            const displayList = filterSimilar ? list : list.slice().reverse();
+
+            colorList.innerHTML = displayList.map(item => `
                 <div class="list-item">
                     <div class="list-item-left">
                         <span class="swatch" style="background-color: ${item.color};"></span>
                         <span class="item-hex">${item.color}</span>
-                        ${item.name ? `<span class="item-name">${escapeHtml(item.name)}</span>` : ''}
+                        ${item.name ? `<span class="item-name">${escapeHtml(item.name)}</span>` : '<span class="item-name" style="font-style: italic; opacity: 0.4;">(Unnamed)</span>'}
                     </div>
                     <div class="list-item-actions">
                         <button type="button" class="action-btn edit-btn" data-color="${item.color}" data-name="${escapeHtml(item.name || '')}" aria-label="Edit color" title="Edit">

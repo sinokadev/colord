@@ -103,6 +103,16 @@ async def register_page(request: Request):
     )
 
 
+# Render full-screen color management page
+@app.get("/manage", response_class=HTMLResponse)
+async def manage_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="manage.html",
+        context={"colors": load_colors()}
+    )
+
+
 # Verify admin password
 @app.post("/auth")
 async def authenticate(payload: AuthRequest):
