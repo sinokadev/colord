@@ -195,6 +195,9 @@
         // ========================================================
         const BLUR_ON_UNFOCUS = false;
 
+        // 고채도(비비드)와 저채도(파스텔/톤다운)를 나누는 기준점 (0 ~ 100)
+        const SATURATION_SPLIT = 45;
+
         function parseHex(hex) {
             let clean = hex.replace('#', '');
             if (clean.length === 3) {
@@ -232,6 +235,12 @@
             return yiq >= 128 ? '#111111' : '#FFFFFF';
         }
 
+        // 0: 고채도 유채색 / 1: 저채도 유채색(파스텔·톤다운) / 2: 무채색
+        function getColorTier(hsl) {
+            if (hsl.s < 10 || hsl.l < 4 || hsl.l > 98) return 2;
+            return hsl.s >= SATURATION_SPLIT ? 0 : 1;
+        }
+
         const rawColors = Array.from(document.querySelectorAll('.color-box'))
             .map(el => ({
                 hex: el.dataset.color,
@@ -239,24 +248,24 @@
             }));
 
         const sortedColors = rawColors
-            .map(item => ({ ...item, ...hexToHsl(item.hex) }))
+            .map(item => {
+                const hsl = hexToHsl(item.hex);
+                return { ...item, ...hsl, tier: getColorTier(hsl) };
+            })
             .sort((a, b) => {
-                // 무채색(채도가 낮거나 극단적인 명도)은 뒤로 배치
-                const aAchromatic = a.s < 10 || a.l < 4 || a.l > 98;
-                const bAchromatic = b.s < 10 || b.l < 4 || b.l > 98;
-
-                if (aAchromatic && !bAchromatic) return 1;
-                if (!aAchromatic && bAchromatic) return -1;
-                if (aAchromatic && bAchromatic) {
-                    return b.l - a.l; // 무채색끼리는 밝은 순 (White -> Gray -> Black)
+                // 1. 큰 그룹 분리: 고채도 구역 -> 저채도 구역 -> 무채색 구역
+                if (a.tier !== b.tier) {
+                    return a.tier - b.tier;
                 }
 
-                // 유채색: 빨간색(0°) -> 주황색 -> 초록색 -> 파랑색 -> 핑크색 -> 빨간색(360°)
+                // 2. 무채색끼리는 밝은 순 (White -> Gray -> Black)
+                if (a.tier === 2) {
+                    return b.l - a.l;
+                }
+
+                // 3. 각 유채색 구역 안에서는 색상(Hue) 순으로 무지개 배치
                 if (Math.abs(a.h - b.h) > 0.001) {
                     return a.h - b.h;
-                }
-                if (Math.abs(b.s - a.s) > 15) {
-                    return b.s - a.s;
                 }
                 if (Math.abs(b.l - a.l) > 0.001) {
                     return b.l - a.l;
@@ -272,7 +281,7 @@
 
             const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
 
-            // 열(Column)별로 Hue 그룹을 분배하고, 각 열 내에서 아래로 갈수록 점점 어두워지도록(L 내림차순) 정렬
+            // 열(Column)별로 그룹 분배 후, 각 열 내부는 위에서 아래로 어두워지도록(L 내림차순) 정렬
             let offset = 0;
             for (let c = 0; c < cols; c++) {
                 const colCount = Math.floor(count / cols) + (c < (count % cols) ? 1 : 0);
@@ -281,11 +290,12 @@
                 const colColors = sortedColors.slice(offset, offset + colCount);
                 offset += colCount;
 
-                // 세로 방향: 명도 순을 유지하면서, 비슷한 명도에서는 채도가 높은 색끼리 모이도록 정렬
+                // 경계 열에서도 채도 그룹이 섞이지 않게 tier를 먼저 유지하고, 같은 그룹 안에서 명도 순 정렬
                 colColors.sort((a, b) => {
-                    if (Math.abs(b.l - a.l) > 0.001) return b.l - a.l;
-                    if (Math.abs(b.s - a.s) > 15) return b.s - a.s;
-                    return (a.h - b.h);
+                    if (a.tier !== b.tier) return a.tier - b.tier;
+                    if (Math.abs(b.l - a.l) > 1.5) return b.l - a.l;
+                    if (Math.abs(b.s - a.s) > 5) return b.s - a.s;
+                    return a.h - b.h;
                 });
 
                 for (let r = 0; r < colCount; r++) {
