@@ -1,5 +1,5 @@
 # Colord - Your own list of color
-# THIS IS 100% AI SLOP
+[![100% AI Slop](https://img.shields.io/badge/100%25-AI%20Slop-red)](https://github.com/sinokadev/aislop-badge)
 
 Run the app with Docker Compose by setting `ADMIN_PASSWORD` in `.env`, then:
 
